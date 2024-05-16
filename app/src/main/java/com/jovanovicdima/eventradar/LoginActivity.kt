@@ -127,7 +127,10 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit) {
             onClick = { onLoginClick(username, password) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Login")
+            Text(
+                "Login",
+                color = MaterialTheme.colorScheme.background
+            )
         }
     }
     Column(
