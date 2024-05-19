@@ -1,7 +1,7 @@
 package com.jovanovicdima.eventradar
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -14,11 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,8 +27,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -40,6 +36,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jovanovicdima.eventradar.network.Firebase
 import com.jovanovicdima.eventradar.ui.theme.EventRadarTheme
 
 class LoginActivity : ComponentActivity() {
@@ -50,9 +47,20 @@ class LoginActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
-                    LoginScreen { _, _ -> }
+                    LoginScreen(
+                        onLoginClick =  { username, password ->
+                            Firebase.login(username, password) {
+                                startActivity(Intent(this, MainScreenActivity::class.java))
+                                finish()
+                            }
+                        },
+                        onRegisterButton = {
+                            startActivity(Intent(this, RegisterActivity::class.java))
+                            finish()
+                        }
+                    )
                 }
             }
         }
@@ -60,11 +68,11 @@ class LoginActivity : ComponentActivity() {
 }
 
 @Composable
-fun LoginScreen(onLoginClick: (String, String) -> Unit) {
+fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: (Unit) -> Unit) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
+    // TODO: Implement verification for username and password fields
 
     Column(
         modifier = Modifier
@@ -79,22 +87,20 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit) {
             onValueChange = { username = it },
             singleLine = true,
             label = { Text("Username") },
-            placeholder = { Text("Username") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusRequester.requestFocus() })
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth(),
             value = password,
             onValueChange = { password = it },
             singleLine = true,
             label = { Text("Password") },
-            placeholder = { Text("Password") },
             visualTransformation = if(passwordVisible) {
                 VisualTransformation.None
             } else {
@@ -115,7 +121,7 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit) {
                     "Show password"
                 }
 
-                IconButton(onClick = {passwordVisible = !passwordVisible}){
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(imageVector  = image, description)
                 }
             }
@@ -133,6 +139,7 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit) {
             )
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,9 +155,7 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))
             ClickableText(
                 text = AnnotatedString("Create Account"),
-                onClick = {
-                    Log.d("Tag", "Message to be logged")
-                },
+                onClick = { onRegisterButton(Unit) },
                 style = TextStyle(
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.primary
@@ -170,7 +175,7 @@ fun Preview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            LoginScreen { _, _ -> }
+            LoginScreen({ _, _ -> }, { _ -> })
         }
     }
 }
