@@ -44,4 +44,5 @@
     </string>
     <string name="title_activity_main">Event Radar</string>
     <string name="title_activity_register">RegisterActivity</string>
+    <string name="title_activity_main_screen">MainScreenActivity</string>
 </resources>
