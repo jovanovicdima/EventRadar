@@ -2,6 +2,7 @@ package com.jovanovicdima.eventradar
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -51,10 +52,12 @@ class LoginActivity : ComponentActivity() {
                 ) {
                     LoginScreen(
                         onLoginClick =  { username, password ->
-                            Firebase.login(username, password) {
+                            Firebase.login(username, password, {
                                 startActivity(Intent(this, MainScreenActivity::class.java))
                                 finish()
-                            }
+                            }, {
+                                Toast.makeText(this, "You have entered an invalid username or password", Toast.LENGTH_SHORT).show()
+                            })
                         },
                         onRegisterButton = {
                             startActivity(Intent(this, RegisterActivity::class.java))
@@ -68,11 +71,14 @@ class LoginActivity : ComponentActivity() {
 }
 
 @Composable
-fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: (Unit) -> Unit) {
+fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    // TODO: Implement verification for username and password fields
+
+    // Validation
+    var invalidUsername by remember { mutableStateOf(false) }
+    var invalidPassword by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -81,24 +87,33 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: (Unit)
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Username
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = username,
-            onValueChange = { username = it },
+            onValueChange = {
+                username = it
+                invalidUsername = false
+            },
             singleLine = true,
             label = { Text("Username") },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
             ),
+            isError = invalidUsername
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Password
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                invalidPassword = false
+            },
             singleLine = true,
             label = { Text("Password") },
             visualTransformation = if(passwordVisible) {
@@ -106,7 +121,10 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: (Unit)
             } else {
                 PasswordVisualTransformation()
             },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Password
+            ),
             trailingIcon = {
                 val image = if(passwordVisible) {
                     Icons.Filled.Visibility
@@ -124,13 +142,26 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: (Unit)
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(imageVector  = image, description)
                 }
-            }
+            },
+            isError = invalidPassword
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { onLoginClick(username, password) },
+            onClick = {
+                if (username == "") {
+                    invalidUsername = true;
+                }
+
+                if (password == "") {
+                    invalidPassword = true;
+                }
+
+                if (username != "" && password != "") {
+                    onLoginClick(username, password)
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -155,7 +186,7 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: (Unit)
             Spacer(modifier = Modifier.width(8.dp))
             ClickableText(
                 text = AnnotatedString("Create Account"),
-                onClick = { onRegisterButton(Unit) },
+                onClick = { onRegisterButton() },
                 style = TextStyle(
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.primary
@@ -175,7 +206,7 @@ fun Preview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            LoginScreen({ _, _ -> }, { _ -> })
+            LoginScreen({ _, _ -> }, { })
         }
     }
 }
