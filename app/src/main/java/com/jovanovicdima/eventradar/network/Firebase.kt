@@ -73,7 +73,7 @@ object Firebase {
                 "phoneNumber" to phoneNumber
             )
         ).addOnSuccessListener {
-            Log.d("UsernameToPassword", "SUCCESSFUL")
+            Log.d("writeAdditionalData", "SUCCESSFUL")
             successCallback()
         }.addOnFailureListener { // Revert registration process if anything fails
             // Unbind username from email
