@@ -5,7 +5,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
-import com.jovanovicdima.eventradar.LoginActivity
 
 object Firebase {
 
@@ -83,18 +82,19 @@ object Firebase {
     fun login(
         usernameOrEmail: String,
         password: String,
-        callback: () -> Unit,
+        successCallback: () -> Unit,
+        failureCallback: () -> Unit,
     ) {
         Log.d("FIREBASE", FirebaseApp.getInstance().toString())
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         auth.signInWithEmailAndPassword(usernameOrEmail, password)
             .addOnSuccessListener {
                 Log.i("Login", "Login successful")
-                callback()
+                successCallback()
             }
             .addOnFailureListener { exception ->
                 Log.e("Login", exception.toString() )
-                throw exception
+                failureCallback()
             }
     }
 }
