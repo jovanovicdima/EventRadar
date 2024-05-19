@@ -3,6 +3,7 @@ package com.jovanovicdima.eventradar
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -43,9 +44,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jovanovicdima.eventradar.network.Firebase
 import com.jovanovicdima.eventradar.ui.theme.EventRadarTheme
 
 
+/*  TODO:   Validate fileds
+ *          password minimum 6 characters
+ *          validate email
+ *
+ *
+ */
 class RegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +68,14 @@ class RegisterActivity : ComponentActivity() {
                         /* TODO:    Set firestore writing rule to true only to logged users and
                          *          fill username - email collection
                          */
-                        onRegisterClick = { username, password -> Log.d("xd", "onCreate: ")},
+                        onRegisterClick = { email, password, username, fullName, phoneNumber ->
+                            Firebase.createAccount(email, password, username, fullName, phoneNumber, {
+                                startActivity(Intent(this, MainScreenActivity::class.java))
+                                finish()
+                            }, {
+                                Toast.makeText(this, "Couldn't create account", Toast.LENGTH_SHORT).show()
+                            })
+                        },
                         onLoginButton = {
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
@@ -73,7 +88,7 @@ class RegisterActivity : ComponentActivity() {
 }
 
 @Composable
-fun RegisterScreen(onRegisterClick: (String, String) -> Unit, onLoginButton: (Unit) -> Unit) {
+fun RegisterScreen(onRegisterClick: (String, String, String, String, String) -> Unit, onLoginButton: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -190,7 +205,7 @@ fun RegisterScreen(onRegisterClick: (String, String) -> Unit, onLoginButton: (Un
         Spacer(modifier = padding)
 
         Button(
-            onClick = { onRegisterClick(username, password) },
+            onClick = { onRegisterClick(email, password, username, fullName, phoneNumber) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -215,7 +230,7 @@ fun RegisterScreen(onRegisterClick: (String, String) -> Unit, onLoginButton: (Un
             Spacer(modifier = Modifier.width(8.dp))
             ClickableText(
                 text = AnnotatedString("Log in"),
-                onClick = { onLoginButton(Unit) },
+                onClick = { onLoginButton() },
                 style = TextStyle(
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.primary
@@ -231,7 +246,7 @@ fun GreetingPreview() {
     EventRadarTheme {
         RegisterScreen(
             onLoginButton = {},
-            onRegisterClick = { _, _ ->}
+            onRegisterClick = { _, _, _, _, _ ->}
         )
     }
 }
