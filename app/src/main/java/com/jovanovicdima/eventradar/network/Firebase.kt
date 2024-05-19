@@ -14,18 +14,19 @@ object Firebase {
         username: String,
         fullName: String,
         phoneNumber: String,
-        callback: () -> Unit
+        successCallback: () -> Unit,
+        failureCallback: () -> Unit
     ) {
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         // Create account
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener {
                 Log.d("Register", "SUCCESSFUL")
-                bindUsernameToEmail(email, username, fullName, phoneNumber, callback)
+                bindUsernameToEmail(email, username, fullName, phoneNumber, successCallback, failureCallback)
             }
             .addOnFailureListener { exception ->
                 Log.e("Auth", exception.toString())
-                throw exception
+                failureCallback()
             }
 
     }
@@ -35,7 +36,8 @@ object Firebase {
         username: String,
         fullName: String,
         phoneNumber: String,
-        callback: () -> Unit
+        successCallback: () -> Unit,
+        failureCallback: () -> Unit
     ) {
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         // Bind username to email
@@ -45,10 +47,11 @@ object Firebase {
             )
         ).addOnSuccessListener {
             Log.d("UsernameToPassword", "SUCCESSFUL")
-            writeAdditionalDataOnRegistration(email, username, fullName, phoneNumber, callback)
+            writeAdditionalDataOnRegistration(email, username, fullName, phoneNumber, successCallback, failureCallback)
         }.addOnFailureListener {// Revert registration process if anything fails
             // Delete account if bind fails
             auth.currentUser!!.delete()
+            failureCallback()
         }
     }
 
@@ -57,7 +60,8 @@ object Firebase {
         username: String,
         fullName: String,
         phoneNumber: String,
-        callback: () -> Unit
+        successCallback: () -> Unit,
+        failureCallback: () -> Unit
     ) {
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         // Write additional user data to the database
@@ -70,12 +74,13 @@ object Firebase {
             )
         ).addOnSuccessListener {
             Log.d("UsernameToPassword", "SUCCESSFUL")
-            callback()
+            successCallback()
         }.addOnFailureListener { // Revert registration process if anything fails
             // Unbind username from email
             Firebase.firestore.collection("usernames").document(username).delete()
             // Delete account
             auth.currentUser!!.delete()
+            failureCallback()
         }
     }
 
