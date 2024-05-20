@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.maps.android.compose.GoogleMap
+import com.jovanovicdima.eventradar.navigation.NavBar
 import com.jovanovicdima.eventradar.ui.theme.EventRadarTheme
 
 class MainScreenActivity : ComponentActivity() {
@@ -22,25 +24,17 @@ class MainScreenActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    NavBar()
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview2() {
     EventRadarTheme {
-        Greeting("Android")
+        NavBar()
     }
 }
