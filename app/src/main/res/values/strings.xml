@@ -45,4 +45,5 @@
     <string name="title_activity_main">Event Radar</string>
     <string name="title_activity_register">RegisterActivity</string>
     <string name="title_activity_main_screen">MainScreenActivity</string>
+    <string name="title_activity_create_pin">CreatePinActivity</string>
 </resources>
