@@ -1,7 +1,6 @@
 package com.jovanovicdima.eventradar.navigation
 
-import android.widget.Toast
-import androidx.compose.animation.scaleIn
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -10,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
@@ -30,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.jovanovicdima.eventradar.CreatePinActivity
 import com.jovanovicdima.eventradar.Home
 import com.jovanovicdima.eventradar.Profile
 
@@ -86,7 +85,10 @@ fun NavBar() {
                 ) {
                     FloatingActionButton(
                         onClick = {
-                            Toast.makeText(context, "Open Bottom Sheet", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(context, CreatePinActivity::class.java).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
                         },
                         containerColor = MaterialTheme.colorScheme.surface
                     ) {
