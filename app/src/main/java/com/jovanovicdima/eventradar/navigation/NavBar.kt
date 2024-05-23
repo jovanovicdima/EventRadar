@@ -30,7 +30,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jovanovicdima.eventradar.CreatePinActivity
 import com.jovanovicdima.eventradar.Home
+import com.jovanovicdima.eventradar.Leaderboard
 import com.jovanovicdima.eventradar.Profile
+import com.jovanovicdima.eventradar.Search
 
 @Composable
 fun NavBar() {
@@ -139,8 +141,8 @@ fun NavBar() {
         NavHost(navController = navigationController, startDestination = Screens.Home.screen,
             modifier = Modifier.padding(paddingValues)) {
             composable(Screens.Home.screen) { Home() }
-//            composable(Screens.Search.screen) { Search() }
-//            composable(Screens.Notifications.screen) { Leaderboard() }
+            composable(Screens.Search.screen) { Search() }
+            composable(Screens.Leaderboard.screen) { Leaderboard() }
             composable(Screens.Profile.screen) { Profile() }
 
         }
