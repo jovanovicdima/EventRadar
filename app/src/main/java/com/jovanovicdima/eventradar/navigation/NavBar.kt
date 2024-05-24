@@ -33,6 +33,7 @@ import com.jovanovicdima.eventradar.Home
 import com.jovanovicdima.eventradar.Leaderboard
 import com.jovanovicdima.eventradar.Profile
 import com.jovanovicdima.eventradar.Search
+import com.jovanovicdima.eventradar.network.getCurrentUser
 
 @Composable
 fun NavBar() {
@@ -143,7 +144,7 @@ fun NavBar() {
             composable(Screens.Home.screen) { Home() }
             composable(Screens.Search.screen) { Search() }
             composable(Screens.Leaderboard.screen) { Leaderboard() }
-            composable(Screens.Profile.screen) { Profile() }
+            composable(Screens.Profile.screen) { Profile(getCurrentUser()!!) }
 
         }
     }
