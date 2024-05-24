@@ -8,8 +8,10 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+import com.jovanovicdima.eventradar.data.User
 import java.io.ByteArrayOutputStream
 
 object Firebase {
@@ -108,15 +110,13 @@ object Firebase {
     ) {
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         // Write additional user data to the database
-        Firebase.firestore.collection("users").document(auth.currentUser!!.uid).set(
-            hashMapOf(
-                "username" to username,
-                "email" to email,
-                "fullName" to fullName,
-                "phoneNumber" to phoneNumber,
-                "profilePictureURL" to profilePictureURL
-            )
-        ).addOnSuccessListener {
+        val user = User()
+        user.email = email
+        user.username = username
+        user.fullName = fullName
+        user.phoneNumber = phoneNumber
+        user.image = profilePictureURL
+        Firebase.firestore.collection("users").document(auth.currentUser!!.uid).set(user).addOnSuccessListener {
             Log.d("writeAdditionalData", "SUCCESSFUL")
             successCallback()
         }.addOnFailureListener { // Revert registration process if anything fails
@@ -147,5 +147,17 @@ object Firebase {
                 Log.e("Login", exception.toString() )
                 failureCallback()
             }
+    }
+}
+
+fun getCurrentUser() : String? {
+    return FirebaseAuth.getInstance().currentUser?.uid
+}
+
+fun getUser(uid: String, callback: (User?) -> Unit) {
+    Firebase.firestore.collection("users").document(uid).get().addOnSuccessListener { document ->
+        if (document.exists()) {
+            callback(document.toObject(User::class.java))
+        }
     }
 }
