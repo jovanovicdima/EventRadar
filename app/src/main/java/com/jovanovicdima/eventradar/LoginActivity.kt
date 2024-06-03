@@ -56,6 +56,7 @@ class LoginActivity : ComponentActivity() {
                                 startActivity(Intent(this, MainScreenActivity::class.java))
                                 finish()
                             }, {
+                                // TODO: implement error system (wrong credentials, no internet...)
                                 Toast.makeText(this, "You have entered an invalid username or password", Toast.LENGTH_SHORT).show()
                             })
                         },
