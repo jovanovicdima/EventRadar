@@ -1,27 +1,21 @@
 package com.jovanovicdima.eventradar
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -49,7 +43,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -59,15 +52,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
 import com.jovanovicdima.eventradar.network.Firebase
+import com.jovanovicdima.eventradar.services.CameraService
 import com.jovanovicdima.eventradar.ui.theme.EventRadarTheme
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Objects
 
 
 /*  TODO:   Validate fileds
@@ -120,26 +108,12 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var phoneNumber by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageUri by remember { mutableStateOf<Uri>(Uri.EMPTY) }
 
-    val file = context.createImageFile()
-    val uri = FileProvider.getUriForFile(
-        Objects.requireNonNull(context),
-        context.packageName + ".provider", file
-    )
-
-    val cameraLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()){
-            imageUri = uri
-        }
-
-    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        Log.e("URI", result.data?.data.toString())
-        if (result.resultCode == Activity.RESULT_OK) {
-
-            Log.e("URI", result.data.toString())
-            imageUri = result.data?.data
-        }
+    val cameraService = CameraService(context)
+    cameraService.Setup {
+        imageUri = it
+        Log.e("CAMERA", "RegisterScreen: $it", )
     }
 
     Column(
@@ -151,26 +125,25 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
     ) {
 
         // Profile Picture
-        imageUri.let { uri ->
-            Surface(
-                modifier = Modifier
-                    .size(256.dp)
-                    .clip(CircleShape)
-            ) {
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+        Surface(
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .size(256.dp)
+                .clip(CircleShape)
+        ) {
+            AsyncImage(
+                model = imageUri,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
 
         // Username
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 8.dp),
+                .padding(vertical = 8.dp),
             value = username,
             onValueChange = { username = it },
             singleLine = true,
@@ -185,7 +158,7 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 8.dp),
+                .padding(vertical = 8.dp),
             value = fullName,
             onValueChange = { fullName = it },
             singleLine = true,
@@ -200,7 +173,7 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 8.dp),
+                .padding(vertical = 8.dp),
             value = email,
             // TODO: check if email is valid
             onValueChange = { email = it },
@@ -216,7 +189,7 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 8.dp),
+                .padding(vertical = 8.dp),
             value = password,
             onValueChange = { password = it },
             singleLine = true,
@@ -254,7 +227,7 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 8.dp),
+                .padding(vertical = 8.dp),
             value = phoneNumber,
             onValueChange = { phoneNumber = it },
             singleLine = true,
@@ -265,9 +238,10 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
             ),
         )
 
-        Row() {
+        Row(
+        ) {
             Button(
-                onClick = { launchImagePicker(imagePickerLauncher) },
+                onClick = { cameraService.uploadPicture() },
                 Modifier.weight(1f)
             ) {
                 Text(
@@ -279,9 +253,7 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = {
-                    cameraLauncher.launch(uri)
-                },
+                onClick = { cameraService.takePicture() },
                 Modifier.weight(1f)
             ) {
                 Text(
@@ -291,8 +263,12 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
             }
         }
         Button(
-            onClick = { onRegisterClick(email, password, username, fullName, phoneNumber, loadImageFromUri(imageUri!!, context)) },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { onRegisterClick(email, password, username, fullName, phoneNumber, cameraService.loadImageBitmapFromUri(imageUri)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+
+
         ) {
             Text(
                 "Register",
@@ -326,20 +302,6 @@ fun RegisterScreen(onRegisterClick: (String, String, String, String, String, Ima
     }
 }
 
-fun launchImagePicker(imagePickerLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
-    val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-        type = "image/*"
-    }
-    imagePickerLauncher.launch(intent)
-}
-
-fun loadImageFromUri(uri: Uri, context: Context): ImageBitmap {
-    // Example with ImageDecoder (requires API level 28)
-    val source = ImageDecoder.createSource(context.contentResolver, uri)
-    val bitmap = ImageDecoder.decodeBitmap(source)
-    return bitmap.asImageBitmap()  // Assuming `image` is a variable holding your ImageBitmap
-}
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
@@ -349,16 +311,4 @@ fun GreetingPreview() {
             onRegisterClick = { _, _, _, _, _, _ ->}
         )
     }
-}
-
-fun Context.createImageFile(): File {
-    val timeStamp = SimpleDateFormat("yyyy_MM_dd_HH:mm:ss").format(Date())
-    val imageFileName = "JPEG_" + timeStamp + "_"
-    val image = File.createTempFile(
-        imageFileName,
-        ".jpg",
-        externalCacheDir
-    )
-
-    return image
 }
