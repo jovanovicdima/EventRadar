@@ -1,5 +1,6 @@
 package com.jovanovicdima.eventradar.services
 
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,17 +31,26 @@ class LocationViewModel {
         return withContext(Dispatchers.IO) {
             val url = URL("https://nominatim.openstreetmap.org/search?q=$address&format=json&accept-language=en")
             val connection = url.openConnection()
-            val inputStream = connection.getInputStream()
-            val jsonString = inputStream.bufferedReader().use { it.readText() }
-            val jsonArray = JSONArray(jsonString)
+            try {
 
-            val suggestions = mutableListOf<String>()
-            for (i in 0 until jsonArray.length()) {
-                val jsonObject = jsonArray.getJSONObject(i)
-                val displayName = jsonObject.getString("display_name")
-                suggestions.add(displayName)
+
+                val inputStream = connection.getInputStream()
+                val jsonString = inputStream.bufferedReader().use { it.readText() }
+                val jsonArray = JSONArray(jsonString)
+
+                val suggestions = mutableListOf<String>()
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val displayName = jsonObject.getString("display_name")
+                    suggestions.add(displayName)
+                }
+                suggestions
             }
-            suggestions
+            catch (e: Exception) {
+                Log.e("GeocoderService", "getAddressSuggestions: $e", )
+                emptyList()
+            }
+
         }
     }
 
