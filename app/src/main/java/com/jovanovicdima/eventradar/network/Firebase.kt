@@ -5,14 +5,17 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+import com.jovanovicdima.eventradar.data.Pin
 import com.jovanovicdima.eventradar.data.User
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 object Firebase {
 
@@ -136,7 +139,7 @@ object Firebase {
         successCallback: () -> Unit,
         failureCallback: () -> Unit,
     ) {
-        Log.d("FIREBASE", FirebaseApp.getInstance().toString())
+//        Log.d("FIREBASE", FirebaseApp.getInstance().toString))
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         auth.signInWithEmailAndPassword(usernameOrEmail, password)
             .addOnSuccessListener {
@@ -147,6 +150,72 @@ object Firebase {
                 Log.e("Login", exception.toString() )
                 failureCallback()
             }
+    }
+
+    fun uploadPin(
+        title: String,
+        location: LatLng,
+        description: String,
+        image: ImageBitmap,
+        successCallback: () -> Unit,
+        failureCallback: () -> Unit,
+    ) {
+        val uuid = UUID.randomUUID().toString()
+        val ref = FirebaseStorage.getInstance().reference.child("preview/${uuid}.jpg")
+        val stream = ByteArrayOutputStream()
+        image.asAndroidBitmap().compress(Bitmap.CompressFormat.JPEG, 100, stream)
+
+        ref.putBytes(stream.toByteArray())
+            .addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { uri ->
+                    val downloadUrl = uri.toString()
+                    // Handle the success (e.g., save the URL or update UI)
+                    Log.d("FirebaseStorage", "Upload successful, URL: $downloadUrl")
+
+                    val user = FirebaseAuth.getInstance().currentUser
+                    if (user != null) {
+
+
+                        val pin = Pin()
+                        pin.user = user.uid
+                        pin.title = title
+                        pin.latitude = location.latitude
+                        pin.longitude = location.longitude
+                        pin.description = description
+                        pin.preview = downloadUrl
+
+                        Firebase.firestore.collection("pins").document(uuid).set(pin)
+                            .addOnSuccessListener {
+                                Log.d("writeAdditionalData", "SUCCESSFUL")
+                                successCallback()
+                            }
+                            .addOnFailureListener { // Revert registration process if anything fails
+                                // Remove profile picture from firestore
+                                FirebaseStorage.getInstance().reference.child("preview/${uuid}.jpg")
+                                    .delete()
+                                failureCallback()
+                            }
+                    }
+                    else {
+                        failureCallback()
+                    }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle the failure
+                Log.e("FirebaseStorage", "Upload failed", exception)
+                failureCallback()
+            }
+    }
+
+    fun getAllPins(callback: (List<Pin>) -> Unit) {
+        val pins = mutableListOf<Pin>()
+        Firebase.firestore.collection("pins").get().addOnSuccessListener { documents ->
+            for (document in documents) {
+                pins.add(document.toObject(Pin::class.java))
+            }
+            callback(pins)
+        }
     }
 }
 
