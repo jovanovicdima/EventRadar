@@ -1,6 +1,7 @@
 package com.jovanovicdima.eventradar.data
 
 class Pin {
+    var id: String = ""
     var user: String = ""
     var title: String = ""
     var latitude: Double? = null

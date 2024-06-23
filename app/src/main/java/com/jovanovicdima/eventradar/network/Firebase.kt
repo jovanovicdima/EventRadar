@@ -114,6 +114,7 @@ object Firebase {
         val auth: FirebaseAuth = FirebaseAuth.getInstance()
         // Write additional user data to the database
         val user = User()
+        user.id = auth.currentUser!!.uid
         user.email = email
         user.username = username
         user.fullName = fullName
@@ -177,6 +178,7 @@ object Firebase {
 
 
                         val pin = Pin()
+                        pin.id = uuid
                         pin.user = user.uid
                         pin.title = title
                         pin.latitude = location.latitude
