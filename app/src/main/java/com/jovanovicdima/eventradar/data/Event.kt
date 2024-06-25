@@ -1,6 +1,6 @@
 package com.jovanovicdima.eventradar.data
 
-class Pin {
+class Event {
     var id: String = ""
     var user: String = ""
     var title: String = ""
@@ -8,4 +8,6 @@ class Pin {
     var longitude: Double? = null
     var description: String = ""
     var preview: String = ""
+    var startDatetime: String = ""
+    var endDatetime: String = ""
 }

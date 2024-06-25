@@ -1,18 +1,15 @@
 package com.jovanovicdima.eventradar.network
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
-import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
-import com.jovanovicdima.eventradar.data.Pin
+import com.jovanovicdima.eventradar.data.Event
 import com.jovanovicdima.eventradar.data.User
 import java.io.ByteArrayOutputStream
 import java.util.UUID
@@ -158,6 +155,8 @@ object Firebase {
         location: LatLng,
         description: String,
         image: ImageBitmap,
+        startDatetime: String,
+        endDatetime: String,
         successCallback: () -> Unit,
         failureCallback: () -> Unit,
     ) {
@@ -177,16 +176,18 @@ object Firebase {
                     if (user != null) {
 
 
-                        val pin = Pin()
-                        pin.id = uuid
-                        pin.user = user.uid
-                        pin.title = title
-                        pin.latitude = location.latitude
-                        pin.longitude = location.longitude
-                        pin.description = description
-                        pin.preview = downloadUrl
+                        val event = Event()
+                        event.id = uuid
+                        event.user = user.uid
+                        event.title = title
+                        event.latitude = location.latitude
+                        event.longitude = location.longitude
+                        event.description = description
+                        event.preview = downloadUrl
+                        event.startDatetime = startDatetime
+                        event.endDatetime = endDatetime
 
-                        Firebase.firestore.collection("pins").document(uuid).set(pin)
+                        Firebase.firestore.collection("pins").document(uuid).set(event)
                             .addOnSuccessListener {
                                 Log.d("writeAdditionalData", "SUCCESSFUL")
                                 successCallback()
@@ -210,13 +211,13 @@ object Firebase {
             }
     }
 
-    fun getAllPins(callback: (List<Pin>) -> Unit) {
-        val pins = mutableListOf<Pin>()
+    fun getAllPins(callback: (List<Event>) -> Unit) {
+        val events = mutableListOf<Event>()
         Firebase.firestore.collection("pins").get().addOnSuccessListener { documents ->
             for (document in documents) {
-                pins.add(document.toObject(Pin::class.java))
+                events.add(document.toObject(Event::class.java))
             }
-            callback(pins)
+            callback(events)
         }
     }
 }
