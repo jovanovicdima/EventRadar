@@ -211,7 +211,7 @@ object Firebase {
             }
     }
 
-    fun getAllPins(callback: (List<Event>) -> Unit) {
+    fun getAllEvents(callback: (List<Event>) -> Unit) {
         val events = mutableListOf<Event>()
         Firebase.firestore.collection("pins").get().addOnSuccessListener { documents ->
             for (document in documents) {
@@ -220,16 +220,24 @@ object Firebase {
             callback(events)
         }
     }
-}
+    fun getCurrentUser() : String? {
+        return FirebaseAuth.getInstance().currentUser?.uid
+    }
 
-fun getCurrentUser() : String? {
-    return FirebaseAuth.getInstance().currentUser?.uid
-}
+    fun getUser(uid: String, callback: (User?) -> Unit) {
+        Firebase.firestore.collection("users").document(uid).get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                callback(document.toObject(User::class.java))
+            }
+        }
+    }
 
-fun getUser(uid: String, callback: (User?) -> Unit) {
-    Firebase.firestore.collection("users").document(uid).get().addOnSuccessListener { document ->
-        if (document.exists()) {
-            callback(document.toObject(User::class.java))
+    fun getEventInfo(eventID: String, callback: (Event?) -> Unit) {
+        val events = mutableListOf<Event>()
+        Firebase.firestore.collection("pins").document(eventID).get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                callback(document.toObject(Event::class.java))
+            }
         }
     }
 }

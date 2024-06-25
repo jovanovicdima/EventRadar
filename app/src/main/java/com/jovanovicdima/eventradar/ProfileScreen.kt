@@ -31,7 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.jovanovicdima.eventradar.network.getUser
+import com.jovanovicdima.eventradar.network.Firebase.getUser
 
 @Composable
 fun Profile(id: String) {

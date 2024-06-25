@@ -25,15 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.jovanovicdima.eventradar.CreatePinActivity
+import com.jovanovicdima.eventradar.EventInfo
 import com.jovanovicdima.eventradar.Home
 import com.jovanovicdima.eventradar.Leaderboard
 import com.jovanovicdima.eventradar.Profile
 import com.jovanovicdima.eventradar.Search
-import com.jovanovicdima.eventradar.network.getCurrentUser
+import com.jovanovicdima.eventradar.network.Firebase.getCurrentUser
 
 @Composable
 fun NavBar() {
@@ -141,11 +144,13 @@ fun NavBar() {
     ) { paddingValues ->
         NavHost(navController = navigationController, startDestination = Screens.Home.screen,
             modifier = Modifier.padding(paddingValues)) {
-            composable(Screens.Home.screen) { Home() }
-            composable(Screens.Search.screen) { Search() }
+            composable(Screens.Home.screen) { Home(navigationController) }
+            composable(Screens.Search.screen) { Search(navigationController) }
             composable(Screens.Leaderboard.screen) { Leaderboard() }
             composable(Screens.Profile.screen) { Profile(getCurrentUser()!!) }
-
+            composable(Screens.EventInfo.screen + "/{eventID}", arguments = listOf(navArgument("eventID") {
+                type = NavType.StringType
+            })) { EventInfo(eventID = it.arguments?.getString("eventID")!!) }
         }
     }
 }

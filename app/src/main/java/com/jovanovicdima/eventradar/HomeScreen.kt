@@ -1,5 +1,6 @@
 package com.jovanovicdima.eventradar
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.location.Location
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +33,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -41,15 +45,17 @@ import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.jovanovicdima.eventradar.data.Event
 import com.jovanovicdima.eventradar.data.LocationInfo
+import com.jovanovicdima.eventradar.navigation.Screens
 import com.jovanovicdima.eventradar.network.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
-fun Home() {
-    var events: List<Event> = emptyList()
-    Firebase.getAllPins {
+fun Home(navigationController: NavHostController) {
+    var events by mutableStateOf(emptyList<Event>())
+    Firebase.getAllEvents {
         events = it
     }
     var userLocation by remember { mutableStateOf<Location?>(LocationInfo.location) }
@@ -88,14 +94,22 @@ fun Home() {
         }
         events.let {
             for (pin in it) {
-                ShowMarker(pin.id, LatLng(pin.latitude!!, pin.longitude!!), pin.title, pin.preview, pin.startDatetime, pin.endDatetime)
+                ShowMarker(navigationController, pin.id, LatLng(pin.latitude!!, pin.longitude!!), pin.title, pin.preview, pin.startDatetime, pin.endDatetime)
             }
         }
     }
 }
 
 @Composable
-fun ShowMarker(id: String, location: LatLng, title: String, previewImageLink: String, startDatetime: String, endDatetime: String) {
+fun ShowMarker(
+    navigationController: NavHostController,
+    id: String,
+    location: LatLng,
+    title: String,
+    previewImageLink: String,
+    startDatetime: String,
+    endDatetime: String
+) {
     val context = LocalContext.current
     var bitmap: ImageBitmap? = null
     val coroutineScope = rememberCoroutineScope()
@@ -109,6 +123,7 @@ fun ShowMarker(id: String, location: LatLng, title: String, previewImageLink: St
         state = MarkerState(location),
         onInfoWindowClick = {
             Log.e("MARKER", "Home: marker clicked", )
+            navigationController.navigate(Screens.EventInfo.screen + "/$id")
         }
     ) {
         Box(
