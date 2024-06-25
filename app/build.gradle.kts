@@ -78,6 +78,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-extended:$1.6.7")
+    implementation("androidx.compose.material3:material3:1.3.0-beta03")
     implementation("androidx.compose.foundation:foundation:1.7.0-beta02")
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.maps.android:maps-compose:4.4.1")
