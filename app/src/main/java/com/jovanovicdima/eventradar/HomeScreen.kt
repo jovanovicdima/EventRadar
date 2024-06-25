@@ -52,7 +52,7 @@ fun Home() {
     Firebase.getAllPins {
         events = it
     }
-    var userLocation by remember { mutableStateOf<Location?>(null) }
+    var userLocation by remember { mutableStateOf<Location?>(LocationInfo.location) }
 
     fun subscriber(location: Location?) {
         userLocation = location

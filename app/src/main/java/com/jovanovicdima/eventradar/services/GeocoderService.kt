@@ -5,6 +5,7 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import java.net.URL
 
 class LocationViewModel {
@@ -52,6 +53,30 @@ class LocationViewModel {
             }
 
         }
+    }
+
+    suspend fun getAddressFromLocation(latitude: Double, longitude: Double): String? {
+        return withContext(Dispatchers.IO) {
+            val url = URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$latitude&lon=$longitude")
+            val connection = url.openConnection()
+            try {
+                val inputStream = connection.getInputStream()
+                val jsonString = inputStream.bufferedReader().use { it.readText() }
+                val jsonObject = JSONObject(jsonString)
+                val address = jsonObject.getJSONObject("address")
+                val houseNumber = address.getString("house_number")
+                val road = address.getString("road")
+                val city = address.getString("city")
+                val country = address.getString("country")
+                "$road $houseNumber, $city, $country"
+            }
+            catch (e: Exception) {
+                Log.e("GeocoderService", "getAddressSuggestions: $e", )
+                null
+            }
+
+        }
+
     }
 
 }
