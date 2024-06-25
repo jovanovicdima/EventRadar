@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.LocationServices
 import com.jovanovicdima.eventradar.R
 import com.jovanovicdima.eventradar.data.DefaultLocationClient
+import com.jovanovicdima.eventradar.data.LocationInfo
 import com.jovanovicdima.eventradar.data.LocationClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +64,8 @@ class LocationService: Service() {
             .getLocationUpdates(10000L)
             .onEach { location ->
                 Log.d("SERVICE", location.toString())
+                LocationInfo.location = location
+                LocationInfo.Alert()
                 val lat = location.latitude.toString()
                 val long = location.longitude.toString()
                 val updatedNotification = notification.setContentText(
