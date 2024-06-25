@@ -55,10 +55,12 @@ fun Home() {
     }
     var userLocation by remember { mutableStateOf<Location?>(null) }
 
-    LocationInfo.Subscribe {
-        userLocation = it
-        Log.e("HOME", "Home: $it")
+    fun subscriber(location: Location?) {
+        userLocation = location
+        Log.e("HOME", "Home: $location")
     }
+
+    LocationInfo.Subscribe(::subscriber)
 
     GoogleMap {
         if(userLocation != null) {

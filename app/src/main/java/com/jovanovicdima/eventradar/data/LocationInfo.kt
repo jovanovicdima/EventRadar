@@ -14,7 +14,9 @@ object LocationInfo {
     }
 
     fun Subscribe(callback: (Location?) -> Unit) {
-        list.add(callback)
+        if(!list.contains(callback)) {
+            list.add(callback)
+        }
     }
 
     fun UnsubscribeAll() {
