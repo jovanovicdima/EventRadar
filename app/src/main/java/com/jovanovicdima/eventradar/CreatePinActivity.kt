@@ -102,7 +102,7 @@ class CreatePinActivity : ComponentActivity() {
 @Composable
 fun CreatePinScreen(onPinUpload: () -> Unit) {
     val context = LocalContext.current
-    var job: Job? = null
+    var job by remember { mutableStateOf<Job?>(null) }
     val coroutineScope = rememberCoroutineScope()
     var suggestions by remember { mutableStateOf<List<String>>(emptyList()) }
     val locationViewModel = LocationViewModel()
@@ -466,7 +466,7 @@ fun CreatePinScreen(onPinUpload: () -> Unit) {
                         return@Button
                     }
 
-                    if(getMillisFromDate(startDatetime) >= getMillisFromDate(endDatetime)) {
+                    if(getMillisFromDatetime(startDatetime) >= getMillisFromDatetime(endDatetime)) {
                         Toast.makeText(context, "Start time must be earlier then end time.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
@@ -495,15 +495,16 @@ fun CreatePinScreen(onPinUpload: () -> Unit) {
 }
 
 private val dateFormat = "MMMM dd, yyyy"
+private val datetimeFormat = "MMMM dd, yyyy HH:mm"
 private fun getDatetime(dateMillis: Long, hour: Int, minute: Int): String {
     val date = Date(dateMillis)
     val datesdf = SimpleDateFormat(dateFormat, Locale.getDefault())
     return "${datesdf.format(date)} ${String.format("%02d", hour)}:${String.format("%02d", minute)}"
 }
 
-private fun getMillisFromDate(date: String): Long {
-    val datesdf = SimpleDateFormat(dateFormat, Locale.getDefault())
-    return datesdf.parse(date)!!.time
+private fun getMillisFromDatetime(datetime: String): Long {
+    val datetimesdf = SimpleDateFormat(datetimeFormat, Locale.getDefault())
+    return datetimesdf.parse(datetime)!!.time
 }
 
 @Composable
