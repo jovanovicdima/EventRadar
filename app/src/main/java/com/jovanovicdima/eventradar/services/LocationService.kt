@@ -2,7 +2,9 @@ package com.jovanovicdima.eventradar.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
@@ -13,6 +15,7 @@ import com.jovanovicdima.eventradar.R
 import com.jovanovicdima.eventradar.data.DefaultLocationClient
 import com.jovanovicdima.eventradar.data.LocationInfo
 import com.jovanovicdima.eventradar.data.LocationClient
+import com.jovanovicdima.eventradar.network.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -32,13 +35,19 @@ class LocationService: Service() {
     override fun onCreate() {
         super.onCreate()
 
-        val channel = NotificationChannel(
+        val locationChannel = NotificationChannel(
             "locationservicechannel",
             "Location",
             NotificationManager.IMPORTANCE_LOW
         )
+        val eventChannel = NotificationChannel(
+            "eventservicechannel",
+            "Event",
+            NotificationManager.IMPORTANCE_HIGH
+        )
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(locationChannel)
+        notificationManager.createNotificationChannel(eventChannel)
 
         locationClient = DefaultLocationClient(
             applicationContext,
@@ -52,11 +61,21 @@ class LocationService: Service() {
     }
 
     private fun start() {
-        val notification = NotificationCompat.Builder(this, "locationservicechannel")
+        var eventNotificationSent = false
+        // must fix this, wont work for other events
+
+        val locationNotification = NotificationCompat.Builder(this, "locationservicechannel")
             .setContentTitle("Tracking location...")
             .setContentText("Location: unknown")
             .setSmallIcon(R.drawable.logo)
             .setOngoing(true)
+
+        val eventNotification = NotificationCompat.Builder(this, "eventservicechannel")
+            .setContentTitle("Welcome to the event!")
+            .setSmallIcon(R.drawable.logo)
+            .setOngoing(false)
+            .setAutoCancel(true)
+
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -68,7 +87,47 @@ class LocationService: Service() {
                 LocationInfo.Alert()
                 val lat = location.latitude.toString()
                 val long = location.longitude.toString()
-                val updatedNotification = notification.setContentText(
+                Firebase.getEventsAtCurrentLocation(location.latitude, location.longitude) { events ->
+                    for(event in events) {
+                        Log.e("LOCATION SERVICE", "start: ${event.title}", )
+                        Firebase.checkUserAttendance(event.id) { beenThere ->
+                            if(beenThere) {
+                                Log.e("LOCATION SERVICE", "start: already been there.", )
+                            } else {
+                                if (!eventNotificationSent) {
+                                    val like = Intent(
+                                        applicationContext,
+                                        NotificationActionReceiver::class.java
+                                    ).apply {
+                                        action = "like|${event.id}|${event.user}"
+                                    }
+                                    val pendingLike = PendingIntent.getBroadcast(
+                                        applicationContext,
+                                        0,
+                                        like,
+                                        PendingIntent.FLAG_IMMUTABLE
+                                    )
+
+                                    val updatedNotification = eventNotification.setStyle(
+                                        NotificationCompat.BigTextStyle()
+                                            .bigText("Hey, thanks for attending ${event.title}!\nIf you like the event, tap button below to give point to the creator.")
+                                    ).addAction(
+                                        // add the action button to notification
+                                        NotificationCompat.Action(
+                                            R.drawable.logo,
+                                            "I like the event",
+                                            pendingLike,
+                                        )
+                                    )
+                                    notificationManager.notify(2, updatedNotification.build())
+                                    eventNotificationSent = true
+                                }
+                            }
+
+                        }
+                    }
+                }
+                val updatedNotification = locationNotification.setContentText(
                     "Location: ($lat, $long)"
                 )
                 notificationManager.notify(1, updatedNotification.build())
@@ -76,7 +135,7 @@ class LocationService: Service() {
             .launchIn(serviceScope)
 
         Log.d("LOCATION SERVICE", "Service started.")
-        startForeground(1, notification.build())
+        startForeground(1, locationNotification.build())
     }
 
     private fun stop() {
@@ -93,5 +152,21 @@ class LocationService: Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+    }
+}
+
+class NotificationActionReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val arguments = intent?.action?.split("|")
+        if(arguments!!.isEmpty()) return
+
+        if (arguments[0] == "like") {
+            // Call your function here
+            val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(2)
+            Log.e("LOCATION SERVICE", "onReceive: like")
+            Firebase.setUserAttendance(arguments[1])
+            Firebase.incrementUserScore(arguments[2])
+        }
     }
 }

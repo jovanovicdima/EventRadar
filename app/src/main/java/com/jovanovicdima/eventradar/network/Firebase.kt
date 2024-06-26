@@ -7,12 +7,14 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import com.jovanovicdima.eventradar.data.Event
 import com.jovanovicdima.eventradar.data.User
 import java.io.ByteArrayOutputStream
 import java.util.UUID
+import kotlin.math.cos
 
 object Firebase {
 
@@ -239,7 +241,60 @@ object Firebase {
         }
     }
 
-    fun getEventsAtCurrentLocation(latitude: Double, longitude: Double) {
+    fun getEventsAtCurrentLocation(lat: Double, lng: Double, callback: (List<Event>) -> Unit) {
+        val radiusInKm = 0.01 // 10 meters
+        val earthRadiusKm = 6371.0
+
+        val latDelta = Math.toDegrees(radiusInKm / earthRadiusKm)
+        val lngDelta = Math.toDegrees(radiusInKm / (earthRadiusKm * cos(Math.toRadians(lat))))
+
+        val minLat = lat - latDelta
+        val maxLat = lat + latDelta
+        val minLng = lng - lngDelta
+        val maxLng = lng + lngDelta
+
+        val events = mutableListOf<Event>()
+
         Firebase.firestore.collection("events")
+            .whereGreaterThanOrEqualTo("latitude", minLat)
+            .whereLessThanOrEqualTo("latitude", maxLat)
+            .whereGreaterThanOrEqualTo("longitude", minLng)
+            .whereLessThanOrEqualTo("longitude", maxLng)
+            .get()
+            .addOnSuccessListener {documents ->
+                for (document in documents) {
+                    events.add(document.toObject(Event::class.java))
+                }
+                callback(events)
+            }
+            .addOnFailureListener {
+                Log.e("Firebase", "getEventsAtCurrentLocation: $it", )
+            }
+    }
+
+    fun setUserAttendance(eventID: String) {
+        Firebase.firestore.collection("attendance").document(eventID).collection("users").document(
+            getCurrentUser()!!).set(mapOf("attended" to true))
+    }
+
+    fun checkUserAttendance(eventID: String, callback: (Boolean) -> Unit) {
+        Firebase.firestore.collection("attendance").document(eventID).collection("users").document(
+            getCurrentUser()!!).get().addOnSuccessListener { document ->
+                if(document.exists()) {
+                    callback(true)
+                } else {
+                    callback(false)
+                }
+        }
+    }
+
+    fun incrementUserScore(userID: String) {
+        Firebase.firestore.collection("leaderboard").document(userID).update("score", FieldValue.increment(1))
+            .addOnFailureListener {
+                Log.e("FIREBASE", "incrementUserScore: $it", )
+                Firebase.firestore.collection("leaderboard").document(userID).set(mapOf("score" to 1)).addOnFailureListener { exception ->
+                    Log.e("FIREBASE", "setUserScore: $exception", )
+                }
+            }
     }
 }
