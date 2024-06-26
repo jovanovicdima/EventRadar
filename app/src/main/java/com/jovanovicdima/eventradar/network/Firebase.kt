@@ -150,7 +150,7 @@ object Firebase {
             }
     }
 
-    fun uploadPin(
+    fun uploadEvent(
         title: String,
         location: LatLng,
         description: String,
@@ -187,9 +187,8 @@ object Firebase {
                         event.startDatetime = startDatetime
                         event.endDatetime = endDatetime
 
-                        Firebase.firestore.collection("pins").document(uuid).set(event)
+                        Firebase.firestore.collection("events").document(uuid).set(event)
                             .addOnSuccessListener {
-                                Log.d("writeAdditionalData", "SUCCESSFUL")
                                 successCallback()
                             }
                             .addOnFailureListener { // Revert registration process if anything fails
@@ -213,7 +212,7 @@ object Firebase {
 
     fun getAllEvents(callback: (List<Event>) -> Unit) {
         val events = mutableListOf<Event>()
-        Firebase.firestore.collection("pins").get().addOnSuccessListener { documents ->
+        Firebase.firestore.collection("events").get().addOnSuccessListener { documents ->
             for (document in documents) {
                 events.add(document.toObject(Event::class.java))
             }
@@ -233,11 +232,14 @@ object Firebase {
     }
 
     fun getEventInfo(eventID: String, callback: (Event?) -> Unit) {
-        val events = mutableListOf<Event>()
-        Firebase.firestore.collection("pins").document(eventID).get().addOnSuccessListener { document ->
+        Firebase.firestore.collection("events").document(eventID).get().addOnSuccessListener { document ->
             if (document.exists()) {
                 callback(document.toObject(Event::class.java))
             }
         }
+    }
+
+    fun getEventsAtCurrentLocation(latitude: Double, longitude: Double) {
+        Firebase.firestore.collection("events")
     }
 }

@@ -471,7 +471,7 @@ fun CreatePinScreen(onPinUpload: () -> Unit) {
                         return@Button
                     }
 
-                    Firebase.uploadPin(
+                    Firebase.uploadEvent(
                         title = title,
                         location = location!!,
                         description = description,
