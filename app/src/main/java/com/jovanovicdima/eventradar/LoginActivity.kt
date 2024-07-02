@@ -57,7 +57,7 @@ class LoginActivity : ComponentActivity() {
                                 finish()
                             }, {
                                 // TODO: implement error system (wrong credentials, no internet...)
-                                Toast.makeText(this, "You have entered an invalid username or password", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "You have entered an invalid username/email or password", Toast.LENGTH_SHORT).show()
                             })
                         },
                         onRegisterButton = {
@@ -97,7 +97,7 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit, onRegisterButton: () -> 
                 invalidUsername = false
             },
             singleLine = true,
-            label = { Text("Username") },
+            label = { Text("Username/Email") },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
