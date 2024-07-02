@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.FirebaseStorage
 import com.jovanovicdima.eventradar.data.Event
 import com.jovanovicdima.eventradar.data.User
@@ -296,5 +297,16 @@ object Firebase {
                     Log.e("FIREBASE", "setUserScore: $exception", )
                 }
             }
+    }
+
+    fun getLeaderboardScores(callback: (List<Pair<Int, String>>) -> Unit) {
+        val items = mutableListOf<Pair<Int, String>>()
+        Firebase.firestore.collection("leaderboard").get().addOnSuccessListener { documents ->
+            for (document in documents) {
+                items.add(Pair((document.get("score") as Long).toInt(), document.id))
+                Log.e("FIREBASE", "getLeaderboardScores: ${document.id}", )
+            }
+            callback(items)
+        }
     }
 }
