@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.jovanovicdima.eventradar.data.LocationInfo
+import com.jovanovicdima.eventradar.network.Firebase
 import com.jovanovicdima.eventradar.network.Firebase.getUser
 import com.jovanovicdima.eventradar.services.LocationService
 
@@ -179,26 +180,26 @@ fun Profile(id: String) {
     var location by remember { mutableStateOf(LocationInfo.locationServiceStatus) }
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+    if(Firebase.getCurrentUser() == id) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Run Location Service: ")
-            Checkbox(checked = location, onCheckedChange = {
-                location = it
-                if(location) {
-                    LocationInfo.enableLocation(context)
-                }
-                else {
-                    LocationInfo.disableLocation(context)
-                }
-            })
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Run Location Service: ")
+                Checkbox(checked = location, onCheckedChange = {
+                    location = it
+                    if (location) {
+                        LocationInfo.enableLocation(context)
+                    } else {
+                        LocationInfo.disableLocation(context)
+                    }
+                })
+            }
         }
-
     }
 
 }
