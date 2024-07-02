@@ -33,6 +33,7 @@ object LocationInfo {
         val locationServiceIntent = Intent(context, LocationService::class.java)
         context.stopService(locationServiceIntent)
         locationServiceStatus = false
+        location = null
     }
 
 }
