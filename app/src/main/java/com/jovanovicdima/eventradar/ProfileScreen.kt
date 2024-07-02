@@ -1,6 +1,8 @@
 package com.jovanovicdima.eventradar
 
+import android.content.Intent
 import android.util.Log
+import android.widget.CheckBox
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,9 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.jovanovicdima.eventradar.data.LocationInfo
 import com.jovanovicdima.eventradar.network.Firebase.getUser
+import com.jovanovicdima.eventradar.services.LocationService
 
 @Composable
 fun Profile(id: String) {
@@ -167,6 +173,32 @@ fun Profile(id: String) {
             color = MaterialTheme.colorScheme.onBackground,
             thickness = 1.dp
         )
+    }
+
+
+    var location by remember { mutableStateOf(LocationInfo.locationServiceStatus) }
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Run Location Service: ")
+            Checkbox(checked = location, onCheckedChange = {
+                location = it
+                if(location) {
+                    LocationInfo.enableLocation(context)
+                }
+                else {
+                    LocationInfo.disableLocation(context)
+                }
+            })
+        }
+
     }
 
 }

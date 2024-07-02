@@ -84,7 +84,7 @@ class LocationService: Service() {
             .onEach { location ->
                 Log.d("SERVICE", location.toString())
                 LocationInfo.location = location
-                LocationInfo.Alert()
+                LocationInfo.alert()
                 val lat = location.latitude.toString()
                 val long = location.longitude.toString()
                 Firebase.getEventsAtCurrentLocation(location.latitude, location.longitude) { events ->

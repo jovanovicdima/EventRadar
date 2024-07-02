@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavHostController
-import androidx.navigation.NavOptions
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -58,14 +56,14 @@ fun Home(navigationController: NavHostController) {
     Firebase.getAllEvents {
         events = it
     }
-    var userLocation by remember { mutableStateOf<Location?>(LocationInfo.location) }
+    var userLocation by remember { mutableStateOf(LocationInfo.location) }
 
     fun subscriber(location: Location?) {
         userLocation = location
         Log.e("HOME", "Home: $location")
     }
 
-    LocationInfo.Subscribe(::subscriber)
+    LocationInfo.subscribe(::subscriber)
 
     GoogleMap {
         if(userLocation != null) {
